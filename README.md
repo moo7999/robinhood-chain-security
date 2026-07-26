@@ -1,22 +1,33 @@
-# robinhood-chain-security
+# Robinhood Chain Security
 
-## المقدمة
+Independent security research and coordinated-disclosure advisories for smart contracts deployed on Robinhood Chain (chain ID 4663).
 
-هذا المستودع مخصص لنشر الأبحاث الأمنية والإفصاحات المنسّقة (Coordinated Disclosures) المتعلقة بالعقود الذكية المنشورة على سلسلة روبن هود (Robinhood Chain). يلتزم هذا المشروع بسياسة الإفصاح المسؤول (Responsible Disclosure)، بمعنى أن أي ثغرة يتم اكتشافها تُبلَّغ للفريق المطوّر المعني أولاً بشكل خاص، ويُمنح وقتاً كافياً لتقييمها ومعالجتها، قبل نشر أي تفاصيل تقنية للعامة. لمزيد من التفاصيل حول هذه السياسة راجع ملف DISCLOSURE.md.
+Findings here are the result of manual source review of verified contracts, using on-chain data from the Robinhood Chain block explorer. Every advisory is handled under coordinated disclosure: the affected team is notified privately first and given time to remediate before full technical detail is published.
 
-## جدول الإفصاحات
+## Advisories
 
-| المعرّف | العقد | المشروع | نوع الثغرة | الحالة |
-|---|---|---|---|---|
-| [RHC-2026-001](./advisories/RHC-2026-001/README.md) | DomainMarketplace | Rob Domains | تعطيل خدمة (Denial of Service) عبر نمو مصفوفة العروض غير المحدود | تم الإصلاح |
+| ID | Target | Severity | Status |
+|---|---|---|---|
+| [RHC-2026-001](advisories/RHC-2026-001/README.md) | Rob Domains — DomainMarketplace | High (DoS) | Fixed |
 
-## هيكل المستودع
+## Lower-severity findings
 
-- `advisories/` — التفاصيل التقنية الكاملة لكل إفصاح رسمي، بما في ذلك الوصف والأثر وإثبات المفهوم (PoC) وتفاصيل الإصلاح.
-- - `findings/` — ملاحظات إضافية أقل خطورة تم رصدها أثناء المراجعات ولم تُصنَّف كإفصاحات رسمية.
-  - - `DISCLOSURE.md` — سياسة الإفصاح المسؤول المتبعة في هذا المستودع.
-    - - `LICENSE` — رخصة الاستخدام (MIT).
-     
-      - ## المؤلف
-     
-      - MO3TH
+Grouped notes that don't warrant a standalone advisory live in `findings/`.
+
+## Scope and method
+
+**Chain:** Robinhood Chain, ID 4663.
+
+**Source:** only contracts with verified source on the block explorer are reviewed; unverified bytecode is out of scope.
+
+**Technique:** manual review plus live state reads. No fuzzing harness or formal verification is claimed. Findings should be independently confirmed before any remediation is relied upon.
+
+## Disclaimer
+
+All content is provided for informational and defensive security purposes only. Nothing here is financial advice, an audit, a guarantee, or an endorsement of any token, protocol, or project. Reviews are best-effort and may be incomplete. Interacting with any contract mentioned is at your own risk.
+
+## Contact
+
+Responsible-disclosure contact and PGP details: see `DISCLOSURE.md`.
+
+Maintained by MO3TH.
