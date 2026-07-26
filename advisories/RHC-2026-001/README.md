@@ -7,12 +7,14 @@
 | Chain | Robinhood Chain (chain ID 4663) |
 | Contract | 0x97A9338083de9a01dA399B9A65768c79862dB9A4 |
 | Severity | High (permanent denial-of-service, no funds lost) |
-| Class | CWE-400 — Uncontrolled resource consumption / unbounded loop |
-| Status | Fixed — remediated in v3 marketplace 0xA023960c... |
+| Class | CWE-770 — Allocation of resources without limits or throttling |
+| Status | Partially mitigated — remediated in v3 marketplace 0xA023960c... |
 | Reported | 2026-07-25 (privately, to the team) |
 | Fixed | 2026-07-25 (fix deployed and verified on-chain) |
 | Disclosed | 2026-07-26 |
 | Researcher | MO3TH |
+
+> **Note:** The multi-address amplification path (spreading offers across many distinct buyer addresses instead of reusing one) is under review and is not fully mitigated by the v3 fix.
 
 ## Summary
 
@@ -40,19 +42,19 @@ mapping(uint256 => mapping(address => uint256)) private _activeOfferIndexPlusOne
 
 ```solidity
 function withdrawOffer(uint256 tokenId, uint256 offerIndex) external nonReentrant {
-    Offer storage o = offers[tokenId][offerIndex];
-    require(o.active, "Marketplace: offer not active");
-    require(o.buyer == msg.sender, "Marketplace: not offer maker");
+Offer storage o = offers[tokenId][offerIndex];
+require(o.active, "Marketplace: offer not active");
+require(o.buyer == msg.sender, "Marketplace: not offer maker");
 
-    uint256 amount = o.amount;
+uint256 amount = o.amount;
 
-    o.active = false;
-    _activeOfferIndexPlusOne[tokenId][msg.sender] = 0;
+o.active = false;
+_activeOfferIndexPlusOne[tokenId][msg.sender] = 0;
 
-    (bool sent, ) = msg.sender.call{value: amount}("");
-    require(sent, "Marketplace: refund failed");
+(bool sent, ) = msg.sender.call{value: amount}("");
+require(sent, "Marketplace: refund failed");
 
-    emit OfferWithdrawn(tokenId, offerIndex);
+emit OfferWithdrawn(tokenId, offerIndex);
 }
 ```
 
@@ -96,17 +98,17 @@ The one subtlety: `makeOffer` must only credit a pending refund when the slot it
 
 ```solidity
 if (existingIndexPlusOne != 0) {
-    offerIndex = existingIndexPlusOne - 1;
-    Offer storage existing = offers[tokenId][offerIndex];
+offerIndex = existingIndexPlusOne - 1;
+Offer storage existing = offers[tokenId][offerIndex];
 
-    if (existing.active) {
-        pendingRefunds[msg.sender] += existing.amount;
-        emit RefundPending(msg.sender, existing.amount);
-    }
+if (existing.active) {
+pendingRefunds[msg.sender] += existing.amount;
+emit RefundPending(msg.sender, existing.amount);
+}
 
-    existing.amount     = msg.value;
-    existing.expiration = expiration;
-    existing.active     = true;
+existing.amount = msg.value;
+existing.expiration = expiration;
+existing.active = true;
 }
 ```
 
@@ -136,25 +138,25 @@ The team deployed a v3 marketplace at `0xA023960c23c7EFFC18c58b0049F14D4a85d2d85
 
 ```solidity
 if (existingIndexPlusOne != 0) {
-    offerIndex = existingIndexPlusOne - 1;
-    Offer storage existing = offers[tokenId][offerIndex];
+offerIndex = existingIndexPlusOne - 1;
+Offer storage existing = offers[tokenId][offerIndex];
 
-    if (existing.active) {
-        pendingRefunds[msg.sender] += existing.amount;
-        emit RefundPending(msg.sender, existing.amount);
-    }
+if (existing.active) {
+pendingRefunds[msg.sender] += existing.amount;
+emit RefundPending(msg.sender, existing.amount);
+}
 
-    existing.amount     = msg.value;
-    existing.expiration = expiration;
-    existing.active     = true;
+existing.amount = msg.value;
+existing.expiration = expiration;
+existing.active = true;
 }
 ```
 
-`offers[tokenId].length` is now permanently bounded by the number of unique buyers, so the makeOffer, withdraw, makeOffer cycle can no longer grow the array, and `buyDomain` / `acceptOffer` cannot be gas-locked. The double-refund guard flagged in the recommendation was included.
+`offers[tokenId].length` is now permanently bounded by the number of unique buyers, so the fix prevents a single address from inflating the array via the makeOffer, withdraw, makeOffer cycle. It does not prevent inflation via multiple distinct addresses: an attacker willing to control many addresses can still grow `offers[tokenId]`, and the cost of doing so is now linear in the number of entries rather than being near-free. The double-refund guard flagged in the recommendation was included.
 
 Also confirmed fixed in the same deployment: optimizer enabled (200 runs), reentrancy guard on all state-changing functions, pull-payment refunds via `pendingRefunds`, `rejectOffer` fallback to the refund queue, checks-effects-interactions ordering, and an O(1) circular buffer for recent sales.
 
-Still open after v3: `getOffersByMaker` remains an unbounded view (no funds at risk); and DomainNFT (`0xF960519a...`) is unchanged and not upgradeable, so the safeTransferFrom receiver-check issue persists in that contract.
+Still open after v3: `getOffersByMaker` remains an unbounded view (no funds at risk); the multi-address amplification path described above remains under review; and DomainNFT (`0xF960519a...`) is unchanged and not upgradeable, so the safeTransferFrom receiver-check issue persists in that contract.
 
 ## Timeline
 
