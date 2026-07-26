@@ -1,3 +1,5 @@
+> **Independent research disclaimer:** This is independent, unofficial security research. It is not affiliated with, endorsed by, or sponsored by Robinhood Markets, Inc.
+
 # Robinhood Chain Security
 
 Independent security research and coordinated-disclosure advisories for smart contracts deployed on Robinhood Chain (chain ID 4663).
@@ -8,7 +10,7 @@ Findings here are the result of manual source review of verified contracts, usin
 
 | ID | Target | Severity | Status |
 |---|---|---|---|
-| [RHC-2026-001](advisories/RHC-2026-001/README.md) | Rob Domains — DomainMarketplace | High (DoS) | Fixed |
+| [RHC-2026-001](advisories/RHC-2026-001/README.md) | Rob Domains — DomainMarketplace | High (DoS) | Partially mitigated |
 
 ## Lower-severity findings
 
